@@ -1,7 +1,6 @@
 from langchain.llms import OpenAI
 from langchain.document_loaders import PyPDFDirectoryLoader
-
-
+from langchain import FewShotPromptTemplate, PromptTemplate
 from langchain.chains import RetrievalQA
 from langchain.vectorstores import DocArrayInMemorySearch
 from IPython.display import display, Markdown
@@ -22,16 +21,15 @@ def main():
         vectorstore_cls=DocArrayInMemorySearch
     ).from_loaders([loader])
 
-    from langchain import FewShotPromptTemplate
-
+    # START of new code
     # create our examples
     examples = [
         {
-            "query": "How are you?",
-            "answer": "I can't complain but sometimes I still do."
+            "query": "How do I remove the scanning tower?",
+            "answer": "I'm sorry, I don't have the information for that."
         }, {
-            "query": "What time is it?",
-            "answer": "It's time to get a watch."
+            "query": "When do I hard reboot?",
+            "answer": "I'm sorry, I don't have the information for that."
         }
     ]
 
@@ -49,10 +47,10 @@ def main():
 
     # now break our previous prompt into a prefix and suffix
     # the prefix is our instructions
-    prefix = """The following are exerpts from conversations with an AI
-    assistant. The assistant is typically sarcastic and witty, producing
-    creative  and funny responses to the users questions. Here are some
-    examples: 
+    prefix = """The following are exerpts from conversations with an AI assistant. 
+    The AI is qualified to answer knowledge questions, but not questions that want an opinion.  
+    If the ai doesn't know the answer or gets a question that wants an opinion, it will say 'I'm sorry, I don't have the information for that.' 
+    Here are some examples: 
     """
     # and the suffix our user input and output indicator
     suffix = """
@@ -68,13 +66,15 @@ def main():
         input_variables=["query"],
         example_separator="\n\n"
     )
+    # END of new code
     
 
     query ="List all the steps to hard reboot the machine."
     # Bad queries
     # query ="When do I hard reboot?" | Reason: AI ignore opinion question and says "You should hard reboot".
     # Doc does not contain information to support any opinion, answer should be "I don't know".
-    print(index.query(query))
+    # print(index.query(query))
+    print(few_shot_prompt_template.format(query=query))
 
 
 
