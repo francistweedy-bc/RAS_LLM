@@ -1,7 +1,8 @@
 from langchain.llms import OpenAI
 from langchain.document_loaders import PyPDFDirectoryLoader
 from langchain import FewShotPromptTemplate, PromptTemplate
-from langchain.chains import RetrievalQA
+from langchain.chains.question_answering import load_qa_chain
+from langchain.chains import LLMChain
 from langchain.vectorstores import DocArrayInMemorySearch
 from IPython.display import display, Markdown
 from langchain.indexes import VectorstoreIndexCreator
@@ -47,11 +48,11 @@ def main():
 
     # now break our previous prompt into a prefix and suffix
     # the prefix is our instructions
-    prefix = """The following are exerpts from conversations with an AI assistant. 
-    The AI is qualified to answer knowledge questions, but not questions that want an opinion.  
-    If the ai doesn't know the answer or gets a question that wants an opinion, it will say 'I'm sorry, I don't have the information for that.' 
-    Here are some examples: 
-    """
+    prefix = """Use the following context to answer the question at the end.  If you don't know the answer, just say that you don't know, don't try to make up an answer.
+        
+        {context}
+        Question: {query}
+        """
     # and the suffix our user input and output indicator
     suffix = """
     User: {query}
@@ -63,18 +64,25 @@ def main():
         example_prompt=example_prompt,
         prefix=prefix,
         suffix=suffix,
-        input_variables=["query"],
+        input_variables=["context", "query"],
         example_separator="\n\n"
     )
     # END of new code
+    chain = load_qa_chain(llm, chain_type="stuff", prompt=few_shot_prompt_template)
+    chain({"input_documents": index, "query": "List the steps to hard reboot the machine."}, return_only_outputs=True)
     
+    # chain = LLMChain(llm=llm, prompt=few_shot_prompt_template)
+    # chain = load_qa_chain(llm, chain_type="stuff", prompt=few_shot_prompt_template)
+    # print(chain({"input_documents": index, "question": "List all the steps to hard reboot the machine."}, return_only_outputs=True))
 
-    query ="List all the steps to hard reboot the machine."
+
     # Bad queries
     # query ="When do I hard reboot?" | Reason: AI ignore opinion question and says "You should hard reboot".
     # Doc does not contain information to support any opinion, answer should be "I don't know".
     # print(index.query(query))
-    print(few_shot_prompt_template.format(query=query))
+    # print(few_shot_prompt_template.format(query=query))
+    # print(chain.run("List all the steps to hard reboot the machine."))
+    # print(chain.run("When do I do a hard reboot?"))
 
 
 
