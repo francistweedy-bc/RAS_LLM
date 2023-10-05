@@ -29,7 +29,7 @@ def main():
             "query": "How do I remove the scanning tower?",
             "answer": "I'm sorry, I don't have the information for that."
         }, {
-            "query": "When do I hard reboot?",
+            "query": "What is your name?",
             "answer": "I'm sorry, I don't have the information for that."
         }
     ]
@@ -69,7 +69,7 @@ def main():
     )
     # END of new code
     chain = load_qa_chain(llm, chain_type="stuff", prompt=few_shot_prompt_template)
-    chain({"input_documents": index, "query": "List the steps to hard reboot the machine."}, return_only_outputs=True)
+    chain({"input_documents": index, "query": "What is your name?"}, return_only_outputs=True)
     
     # chain = LLMChain(llm=llm, prompt=few_shot_prompt_template)
     # chain = load_qa_chain(llm, chain_type="stuff", prompt=few_shot_prompt_template)

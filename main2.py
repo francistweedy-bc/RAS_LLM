@@ -30,7 +30,7 @@ def main():
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     documents = text_splitter.split_documents(documents)
 
-    # create vector store with split documents
+    # create vector store(embeddings) with split documents
     vectordb = Chroma.from_documents(
         documents,
         embedding=OpenAIEmbeddings(),
@@ -42,12 +42,16 @@ def main():
     qa_chain = RetrievalQA.from_chain_type(
         llm,
         retriever=vectordb.as_retriever(search_kwargs={'k': 7}),
-        return_source_documents=True
+        return_source_documents=True,
     )
 
-    # we can now execute queries against our Q&A chain
+    # we can now execute queries against our Q&A chain, returning the answer and source documents
     result = qa_chain({'query': 'List all the steps to hard reboot the machine.'})
+    doc_sources = set()
+    for x in result["source_documents"]:
+        doc_sources.add(x.metadata["source"])
     print(result['result'])
+    print(doc_sources)
 
 
 if __name__ == "__main__":
