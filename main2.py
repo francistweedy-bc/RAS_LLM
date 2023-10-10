@@ -1,3 +1,5 @@
+import sys
+import os
 from langchain.llms import OpenAI
 from langchain.document_loaders import PyPDFDirectoryLoader
 from langchain import FewShotPromptTemplate, PromptTemplate
@@ -7,12 +9,13 @@ from IPython.display import display, Markdown
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
+
 
 # fix the sqlite3 version issue
 __import__('pysqlite3')
-import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-import os
 
 def main():
     api_key = ""
@@ -45,7 +48,7 @@ def main():
         return_source_documents=True,
     )
 
-    # we can now execute queries against our Q&A chain, returning the answer and source documents
+    # execute queries against the Q&A chain, returning the answer and source documents
     result = qa_chain({'query': 'List all the steps to hard reboot the machine.'})
     doc_sources = set()
     for x in result["source_documents"]:
