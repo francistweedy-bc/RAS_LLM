@@ -66,17 +66,8 @@ def mention_handler(body, say):
         doc_sources.add(x.metadata["source"])
 
     # return result and source documents to Slack user
-    say({"blocks": [
-      {
-        "type": "section",
-        "text": result
-        },
-        {
-        "type": "section",
-        "text": doc_sources
-      }
-    ]})
-    
+    new_line = '\n'
+    say(test=f'{result}{new_line}{doc_sources}', thread_ts=thread_ts)    
     # print(result['result'])
     # print(doc_sources)
 
