@@ -12,12 +12,18 @@ from langchain.embeddings import OpenAIEmbeddings
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
+app_token = "app token"
+bot_token = "bot token"
+app = App(token=bot_token)
+
 
 # fix the sqlite3 version issue
 __import__('pysqlite3')
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-def main():
+# def main():
+@app.event("app_mention")
+def mention_handler(body, say):
     api_key = ""
     with open("api_key.txt", "r") as f:
         api_key = f.read().strip()
@@ -48,14 +54,34 @@ def main():
         return_source_documents=True,
     )
 
-    # execute queries against the Q&A chain, returning the answer and source documents
-    result = qa_chain({'query': 'List all the steps to hard reboot the machine.'})
+    # get the Slack thread and user question from message
+    event = body["event"]
+    thread_ts = event.get("thread_ts", None) or event["ts"]
+    question = body.get("text")
+
+    # pass Slack question to LLM chain and get result and source documents
+    result = qa_chain({'query': question})
     doc_sources = set()
     for x in result["source_documents"]:
         doc_sources.add(x.metadata["source"])
-    print(result['result'])
-    print(doc_sources)
+
+    # return result and source documents to Slack user
+    say({"blocks": [
+      {
+        "type": "section",
+        "text": result
+        },
+        {
+        "type": "section",
+        "text": doc_sources
+      }
+    ]})
+    
+    # print(result['result'])
+    # print(doc_sources)
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    handler = SocketModeHandler(app, app_token).start()
+    handler.start()
