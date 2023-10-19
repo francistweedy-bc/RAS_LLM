@@ -2,19 +2,18 @@ import sys
 import os
 from langchain.llms import OpenAI
 from langchain.document_loaders import PyPDFDirectoryLoader
-from langchain import FewShotPromptTemplate, PromptTemplate
-from langchain.chains.question_answering import load_qa_chain
+# from langchain import FewShotPromptTemplate, PromptTemplate
 from langchain.chains import LLMChain, RetrievalQA
-from IPython.display import display, Markdown
+# from IPython.display import display, Markdown
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-app_token = "app token"
-bot_token = "bot token"
-app = App(token=bot_token)
+# app_token = "app token"
+# bot_token = "bot token"
+# app = App(token=bot_token)
 
 
 # fix the sqlite3 version issue
@@ -22,8 +21,9 @@ __import__('pysqlite3')
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # def main():
-@app.event("app_mention")
-def mention_handler(body, say):
+# @app.event("app_mention")
+# def mention_handler(body, say):
+def main():
     api_key = ""
     with open("api_key.txt", "r") as f:
         api_key = f.read().strip()
@@ -54,10 +54,15 @@ def mention_handler(body, say):
         return_source_documents=True,
     )
 
+    prompt = """A question is provided: {question}
+                The agent with expert knowledge of the source documents will answer as accurately as possible, saying 'I can't find that'
+    """
+
     # get the Slack thread and user question from message
-    event = body["event"]
-    thread_ts = event.get("thread_ts", None) or event["ts"]
-    question = body.get("text")
+    # event = body["event"]
+    # thread_ts = event.get("thread_ts", None) or event["ts"]
+    # question = body.get("text")
+    question = "List the steps to hard reboot the machine."
 
     # pass Slack question to LLM chain and get result and source documents
     result = qa_chain({'query': question})
@@ -67,12 +72,12 @@ def mention_handler(body, say):
 
     # return result and source documents to Slack user
     new_line = '\n'
-    say(test=f'{result}{new_line}{doc_sources}', thread_ts=thread_ts)    
-    # print(result['result'])
-    # print(doc_sources)
+    # say(test=f'{result}{new_line}{doc_sources}', thread_ts=thread_ts)    
+    print(result['result'])
+    print(doc_sources)
 
 
 if __name__ == "__main__":
-    # main()
-    handler = SocketModeHandler(app, app_token).start()
-    handler.start()
+    main()
+    # handler = SocketModeHandler(app, app_token).start()
+    # handler.start()
